@@ -17,7 +17,7 @@ export function DashboardContent() {
   const fallback = recommendations.isSuccess && recommendations.data.length === 0;
   const books = fallback ? trending : recommendations;
   const reading = library.data?.find(entry => entry.status === "reading");
-  const finish = useMutation({ mutationFn: (id: number) => updateShelf(id, "finished"), onSuccess: async () => { await Promise.all([client.invalidateQueries({ queryKey: ["library"] }), client.invalidateQueries({ queryKey: ["recommendations"] }), session.reload()]); } });
+  const finish = useMutation({ mutationFn: (id: number) => updateShelf(id, "finished"), onSuccess: async () => { await Promise.all([client.invalidateQueries({ queryKey: ["library"] }), client.invalidateQueries({ queryKey: ["recommendations"] }), client.invalidateQueries({ queryKey: ["book"] }), session.reload()]); } });
   useEffect(() => { const hour = new Date().getHours(); setGreeting(hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening"); }, []);
   const profile = session.profile;
   return <div className="dashboard">

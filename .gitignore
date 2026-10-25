@@ -4,3 +4,4 @@ out/
 .env*.local
 *.tsbuildinfo
 .preview/
+.next-reader-preview/

@@ -3,7 +3,7 @@
 Independent Next.js frontend. Visual direction comes from the root `design/` images, not the existing frontend. The original `frontend/` is untouched. Backend integration uses the existing Django architecture; see `docs/BACKEND_INTEGRATION.md` for the small JWT authentication fix and validation.
 
 ## Scope
-The public landing page is at `/`, based on `design/landing-page.png`. The design board's surrounding palette, typography notes, and brand presentation are intentionally excluded from the website. The shared foundation preview stays at `/foundations`. `/dashboard` implements the reader home design with authenticated API data. `/login`, `/signup`, and `/verify-otp` have complete form designs and request handlers for the existing backend. Other reader destinations remain placeholders. The actual frontend-to-Django flow has been checked on an isolated fixture database. Real Gmail delivery and deployment configuration remain environment checks.
+The public landing page is at `/`, based on `design/landing-page.png`. The design board's surrounding palette, typography notes, and brand presentation are intentionally excluded from the website. The shared foundation preview stays at `/foundations`. `/dashboard` implements the reader home design with authenticated API data. `/login`, `/signup`, and `/verify-otp` have complete form designs and request handlers for the existing backend. Discover Books, book details, My Shelf, Profile, and Settings now use live API data; Community now supports reader connections; Book Clubs, Messages, and Pass Books On remain placeholders. The actual frontend-to-Django flow has been checked on an isolated fixture database. Real Gmail delivery and deployment configuration remain environment checks.
 
 See [Backend integration](docs/BACKEND_INTEGRATION.md) for setup and repeatable checks. See [Authentication pages](docs/AUTH_FLOW.md) for the request contract, environment configuration, design assets, and verification limits. Product proposals at the project root include [Upcoming Events](../UPCOMING_EVENTS_FEATURE.md) and [Daily Reading Quote](../DAILY_READING_QUOTE_FEATURE.md).
 
@@ -33,3 +33,23 @@ The book-cover art is displayed through CSS windows into the supplied `public/im
 - `public/images/dashboard-book-stack.png`: prompt — isolated transparent vintage watercolor/ink illustration of moss, cocoa and ochre books with aged ivory pages and an olive branch in a small pottery vase; compact corner composition; no text, borders, floor or background.
 
 Generated artwork follows the reference but is not identical. Browser checks at 390px and 1440px verified no page-width overflow, the mobile book rail, event dialog opening/closing, and mobile navigation opening and closing with Escape. Browser screenshots are kept under ignored `.preview/`. No dependencies were added. See the integration document for backend changes and newer browser-to-Django checks.
+
+
+## My Shelf, Profile, and Settings
+
+`/my-shelf` supports status filters (including dashboard query links), title/author search, sorting, reading-status changes, personal ratings, and confirmed removal. Book links open the full detail page. No percentage progress is invented.
+
+`/profile` edits personal information and saves favourite genres and public/private visibility under Profile preferences. Public profiles accept new follows immediately; private profiles require approval. Basic reader metadata remains discoverable, and existing followers are unchanged. Interests come from the new `GET /api/auth/genres/` endpoint, so deploy the backend change too; the picker reflects the stored Genre rows.
+
+`/settings` supports password changes and logout. Theme and book-description text size persist in this browser, not in the account. Notification controls are marked unavailable until a persistence API exists. Profile images and reading goals are not presented as working features.
+
+Implementation, API examples, privacy semantics, deployment notes, and reproducible tests are documented in [Reader page integration](../backend/docs/READER_PAGES.md). TypeScript and the production build passed. Browser checks against local synthetic API fixtures passed shelf/profile/settings mutations and 390px/768px layouts; separate Django tests verified actual backend persistence and follow behavior.
+
+
+## Community and book-reader activity
+
+`/community` supports exact-username reader search, following/followers, incoming request approval/decline, sent-request cancellation, follow-back actions, and confirmed unfollow. Public follows are accepted immediately; private follows remain pending until approved. The sidebar uses actual followers rather than fabricated suggested users. Posts/discussions/events remain marked as future features.
+
+Book details now display up to five recent shelf updates with public handles, dates, reader counts, and links into Community. Both public and private profiles are included, as requested. Your own activity links to your Profile. The backend resolves account handles without exposing sign-in emails, and shelf mutations refresh book activity. `page_count` continues to display as Pages.
+
+Redeploy both backend and frontend for the safe activity fields and additive `outgoing_pending` connections field. See [Community API integration](../backend/docs/COMMUNITY.md) for payloads, relationship IDs, privacy behavior, and reproducible tests. Browser checks covered follow/request decisions, error states, book-reader links, and 390px/768px layouts using synthetic local API fixtures.

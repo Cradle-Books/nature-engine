@@ -6,6 +6,7 @@ import { fetchBook, fetchLibrary, fetchTrending, saveBook, updateShelf, type Lib
 import { ApiError } from "@/lib/http";
 import { useSession } from "@/components/session-provider";
 import { BookCover } from "./book-cover";
+import { BookActivity } from "./book-activity";
 
 const shelfNames = { want: "Want to read", reading: "Currently reading", finished: "Finished" };
 export function BookDetailContent({ id }: { id: number }) {
@@ -17,7 +18,7 @@ export function BookDetailContent({ id }: { id: number }) {
   const entry = library.data?.find(item => item.book.id === id);
   const shelf = useMutation({
     mutationFn: (status: LibraryEntry["status"]) => entry ? updateShelf(entry.id, status) : saveBook(id, status),
-    onSuccess: async () => { await Promise.all([client.invalidateQueries({ queryKey: ["library"] }), client.invalidateQueries({ queryKey: ["recommendations"] }), session.reload()]); },
+    onSuccess: async () => { await Promise.all([client.invalidateQueries({ queryKey: ["library"] }), client.invalidateQueries({ queryKey: ["recommendations"] }), client.invalidateQueries({ queryKey: ["book", id] }), session.reload()]); },
   });
   const unavailable = book.error instanceof ApiError && book.error.status === 404;
   const disabled = shelf.isPending || library.isPending || library.isError;
@@ -32,6 +33,7 @@ export function BookDetailContent({ id }: { id: number }) {
           {session.status === "authenticated" && library.isError && <p role="alert" className="book-detail-feedback">Your shelf couldn’t load. <button type="button" className="book-detail-inline" onClick={() => void library.refetch()}>Try again</button></p>}
         </div></section>
         <section className="book-detail-about card" aria-labelledby="about-book"><h2 id="about-book">About this book</h2><p className="book-description">{book.data.description || "A description isn’t available for this book yet."}</p><dl className="book-detail-facts"><div><dt>Pages</dt><dd>{book.data.pageCount ?? "Unavailable"}</dd></div><div><dt>Published</dt><dd>{book.data.year ?? "Unavailable"}</dd></div></dl></section>
+        <BookActivity details={book.data} />
         <section className="book-detail-bottom"><BookOpen size={24} aria-hidden="true" /><div><h2>Make room for your next chapter.</h2><p>Keep your discoveries together on your reading shelf.</p></div><Link href="/my-shelf" className="button button--secondary">My Shelf</Link></section>
       </div>
       <aside className="book-detail-related card" aria-labelledby="related-books"><h2 id="related-books">Popular on Cradle</h2><p className="book-detail-related-note">More books to explore</p>{popular.isPending ? <p role="status">Finding more books…</p> : popular.isError ? <div role="alert"><p>More books couldn’t load.</p><button type="button" className="book-detail-inline" onClick={() => void popular.refetch()}>Try again</button></div> : popular.data.filter(item => item.id !== id).slice(0, 4).map(item => <Link className="book-detail-related-book" key={item.id} href={`/books/${item.id}`}><BookCover book={item} /><div><h3>{item.title}</h3><p>{item.author}</p>{item.rating !== null && <span><Star size={10} fill="currentColor" /> {item.rating.toFixed(1)}</span>}</div></Link>)}{popular.isSuccess && popular.data.filter(item => item.id !== id).length === 0 && <p>No other books to show yet.</p>}<Link href="/discover" className="book-detail-inline"><Users size={14} /> Keep discovering</Link></aside>

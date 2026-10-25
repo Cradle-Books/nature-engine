@@ -10,7 +10,7 @@ export function BookDialog({ book, entry, onClose }: { book: Book; entry?: Libra
   const dialog = useRef<HTMLDialogElement>(null); const titleId = useId(); const session = useSession(); const client = useQueryClient();
   const details = useQuery({ queryKey: ["book", book.id], queryFn: () => fetchBook(book.id) });
   const displayed = details.data ?? book;
-  const refreshShelves = async () => { await Promise.all([client.invalidateQueries({ queryKey: ["library"] }), client.invalidateQueries({ queryKey: ["recommendations"] }), session.reload()]); };
+  const refreshShelves = async () => { await Promise.all([client.invalidateQueries({ queryKey: ["library"] }), client.invalidateQueries({ queryKey: ["recommendations"] }), client.invalidateQueries({ queryKey: ["book"] }), session.reload()]); };
   const save = useMutation({ mutationFn: () => saveBook(book.id), onSuccess: refreshShelves });
   const shelf = useMutation({ mutationFn: (status: LibraryEntry["status"]) => { if (!entry) throw new Error("Save the book before changing its shelf."); return updateShelf(entry.id, status); }, onSuccess: refreshShelves });
   useEffect(() => { dialog.current?.showModal(); }, []);
