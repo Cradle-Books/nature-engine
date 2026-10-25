@@ -1,0 +1,5 @@
+simulation: cradle-frontend
+routing: path
+mocks:
+  - routeKey: api
+    path: ../mocks/cradle/config.yaml

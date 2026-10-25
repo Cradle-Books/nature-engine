@@ -1,0 +1,3 @@
+export function Botanical({ className = "" }: { className?: string }) {
+ return <svg className={className} viewBox="0 0 160 240" fill="none" aria-hidden="true"><g stroke="currentColor" strokeWidth="1.15"><path d="M83 238C65 175 120 105 82 12M83 219C52 191 32 172 16 137M84 191C116 166 134 146 146 112" />{[0,1,2,3,4,5].map(i => <g key={i} transform={`translate(${i % 2 ? 4 : 0} ${i * 29})`}><path d="M88 45C62 45 57 22 61 10C82 13 91 26 88 45Z"/><path d="M92 65C117 61 125 42 123 29C100 33 91 47 92 65Z"/><path d="M88 45L66 17M92 65L118 36"/></g>)}<path d="M53 194C25 192 9 170 10 154C37 156 53 173 53 194ZM110 168C109 143 125 123 145 120C144 144 129 161 110 168Z" /></g></svg>;
+}
