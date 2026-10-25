@@ -1,11 +1,11 @@
 "use client";
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen, Library, Flame, Heart, Fingerprint, Orbit, Search, Star, ArrowLeft, ArrowRight } from "lucide-react";
 import { apiRequest, isObject } from "@/lib/http";
-import { fetchTrending, normalizeBook, type Book } from "@/lib/books";
+import { fetchTrending, normalizeBook } from "@/lib/books";
 import { BookCover } from "./book-cover";
-import { BookDialog } from "./book-dialog";
 
 const genres = [
   { label: "Fiction", icon: BookOpen }, { label: "Non-fiction", icon: Library },
@@ -23,7 +23,7 @@ export function DiscoverContent({ initialQuery }: { initialQuery: string }) {
   const [input, setInput] = useState(initialQuery);
   const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<Book | null>(null);
+  const router = useRouter();
   const books = useQuery({ queryKey: query ? ["discover-search", query, page] : ["trending"], queryFn: () => query ? searchBooks(query, page) : fetchTrending(), retry: false });
   function search(value: string) { const next = value.trim(); setInput(next); setQuery(next); setPage(1); }
   function submit(event: FormEvent) { event.preventDefault(); search(input); }
@@ -36,9 +36,8 @@ export function DiscoverContent({ initialQuery }: { initialQuery: string }) {
     <nav className="discover-genres" aria-label="Explore genres">{genres.map(({ label, query: genreQuery, icon: Icon }) => <button type="button" key={label} aria-pressed={query === (genreQuery ?? label)} onClick={() => search(genreQuery ?? label)}><span><Icon size={24} strokeWidth={1.3} aria-hidden="true" /></span>{label}</button>)}</nav>
     <section className="discover-results" aria-labelledby="discover-results-title" aria-busy={books.isFetching}>
       <header><div><h2 id="discover-results-title">{query ? `Results for “${query}”` : "Trending Now"}</h2>{query && <p>Page {page} · Search across Cradle and Open Library</p>}</div>{query && <button type="button" className="discover-text-button" onClick={() => search("")}>Back to trending <ArrowRight size={14} /></button>}</header>
-      {books.isPending ? <div className="discover-grid" role="status" aria-label="Loading books">{Array.from({ length: 5 }, (_, i) => <div className="discover-skeleton" key={i} />)}</div> : books.isError ? <div className="live-state" role="alert"><p>{books.error.message}</p><button type="button" className="button button--secondary" onClick={() => void books.refetch()}>Try again</button></div> : books.data.length === 0 ? <div className="discover-empty"><BookOpen size={32} aria-hidden="true" /><h3>{query ? "No books found this time" : "Your next favourite is on its way"}</h3><p>{query ? "Try another title, author, or a broader search." : "Search for a favourite book or explore a genre above."}</p></div> : <div className="discover-grid">{books.data.map(book => <button type="button" className="discover-book" key={book.id} onClick={() => setSelected(book)} aria-label={`View ${book.title} by ${book.author}`}><BookCover book={book} /><h3>{book.title}</h3><p>{book.author}</p><div className="discover-book-meta">{book.genres[0] && <span>{book.genres[0]}</span>}{book.rating !== null && <span className="discover-rating">{book.rating.toFixed(1)} <Star size={11} fill="currentColor" aria-hidden="true" /></span>}</div></button>)}</div>}
+      {books.isPending ? <div className="discover-grid" role="status" aria-label="Loading books">{Array.from({ length: 5 }, (_, i) => <div className="discover-skeleton" key={i} />)}</div> : books.isError ? <div className="live-state" role="alert"><p>{books.error.message}</p><button type="button" className="button button--secondary" onClick={() => void books.refetch()}>Try again</button></div> : books.data.length === 0 ? <div className="discover-empty"><BookOpen size={32} aria-hidden="true" /><h3>{query ? "No books found this time" : "Your next favourite is on its way"}</h3><p>{query ? "Try another title, author, or a broader search." : "Search for a favourite book or explore a genre above."}</p></div> : <div className="discover-grid">{books.data.map(book => <button type="button" className="discover-book" key={book.id} onClick={() => router.push(`/books/${book.id}`)} aria-label={`View ${book.title} by ${book.author}`}><BookCover book={book} /><h3>{book.title}</h3><p>{book.author}</p><div className="discover-book-meta">{book.genres[0] && <span>{book.genres[0]}</span>}{book.rating !== null && <span className="discover-rating">{book.rating.toFixed(1)} <Star size={11} fill="currentColor" aria-hidden="true" /></span>}</div></button>)}</div>}
       {query && !books.isPending && !books.isError && <nav className="discover-pagination" aria-label="Search results pages"><button type="button" className="button button--secondary" disabled={page === 1 || books.isFetching} onClick={() => setPage(value => value - 1)}><ArrowLeft size={15} /> Previous</button><span aria-live="polite">Page {page}</span><button type="button" className="button button--secondary" disabled={books.data.length < PAGE_SIZE || books.isFetching} onClick={() => setPage(value => value + 1)}>Next <ArrowRight size={15} /></button></nav>}
     </section>
-    {selected && <BookDialog key={selected.id} book={selected} onClose={() => setSelected(null)} />}
   </div>;
 }
